@@ -1,0 +1,59 @@
+/* src/styles/responsive.css */
+
+/* Tablet & Smaller Screens (8-inch devices usually fall under max-width: 900px or 1024px depending on orientation and pixel density) */
+@media (max-width: 900px) {
+  .app-container {
+    padding: 0.5rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: 1fr; /* Stack columns on smaller screens */
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  /* Make sure inputs and buttons are easily reachable */
+  .btn, .input-field {
+    font-size: 1.2rem; /* slightly larger text for touch readability */
+    min-height: 56px; /* larger touch target on mobile */
+  }
+}
+
+/* Very Small Mobile Phones (just in case) */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .btn {
+    width: 100%; /* Full width buttons on small screens */
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Landscape orientation adjustments for 8-inch tablets */
+@media (max-width: 1200px) and (orientation: landscape) {
+  .page-container {
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+  
+  .dashboard-main {
+    flex: 2;
+  }
+  
+  .dashboard-sidebar {
+    flex: 1;
+  }
+}
