@@ -1,7 +1,7 @@
 // src/pages/LoginPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login, signUp } from '../services/authService';
+import { DEMO_ACCOUNTS, login, signUp } from '../services/authService';
 import Loader from '../components/Loader';
 
 const LoginPage = ({ setUser }) => {
@@ -15,6 +15,13 @@ const LoginPage = ({ setUser }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const fillDemoAccount = (account) => {
+    setIsSignUp(false);
+    setError('');
+    setEmail(account.email);
+    setPassword(account.password);
+  };
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -56,6 +63,36 @@ const LoginPage = ({ setUser }) => {
         <p className="text-center mb-2">
           {isSignUp ? "Create a new account" : "Welcome back! Please login."}
         </p>
+
+        {!isSignUp && (
+          <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div>
+                  <strong>Student login</strong>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{DEMO_ACCOUNTS.student.email}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Password: {DEMO_ACCOUNTS.student.password}</div>
+                </div>
+                <button type="button" className="btn btn-outline" style={{ minHeight: '40px' }} onClick={() => fillDemoAccount(DEMO_ACCOUNTS.student)}>
+                  Use student
+                </button>
+              </div>
+            </div>
+
+            <div style={{ padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div>
+                  <strong>Teacher login</strong>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{DEMO_ACCOUNTS.teacher.email}</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Password: {DEMO_ACCOUNTS.teacher.password}</div>
+                </div>
+                <button type="button" className="btn btn-outline" style={{ minHeight: '40px' }} onClick={() => fillDemoAccount(DEMO_ACCOUNTS.teacher)}>
+                  Use teacher
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', borderLeft: '4px solid var(--danger)', marginBottom: '1.5rem', borderRadius: '4px' }}>
@@ -140,7 +177,7 @@ const LoginPage = ({ setUser }) => {
               setLoading(true);
               if (window.seedDemoUsers) {
                 await window.seedDemoUsers();
-                alert("Demo users (student@school.com and teacher@school.com) created! Password for both is 'password'");
+                alert(`Demo users created!\nStudent: ${DEMO_ACCOUNTS.student.email} / ${DEMO_ACCOUNTS.student.password}\nTeacher: ${DEMO_ACCOUNTS.teacher.email} / ${DEMO_ACCOUNTS.teacher.password}`);
               }
               setLoading(false);
             }}

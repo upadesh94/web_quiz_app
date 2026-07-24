@@ -1,8 +1,26 @@
 import { db } from './firebaseConfig';
 import { collection, addDoc, getDocs, doc, getDoc, query, where, setDoc } from 'firebase/firestore';
+import { createId } from '../utils/createId';
 
 const QUIZZES_COLLECTION = 'quizzes';
 const RESULTS_COLLECTION = 'results';
+const LOCAL_QUIZZES_KEY = 'quiz_app_local_quizzes';
+const LOCAL_RESULTS_KEY = 'quiz_app_local_results';
+
+const isPermissionError = (error) => error?.code === 'permission-denied' || /permission|missing or insufficient/i.test(error?.message || '');
+
+const readLocalJson = (key, fallback) => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const writeLocalJson = (key, value) => {
+  localStorage.setItem(key, JSON.stringify(value));
+};
 
 const mockQuizzes = [
   {
@@ -68,6 +86,16 @@ export const getQuizzes = async (classLevel = null) => {
     }
     return quizzes;
   } catch (err) {
+    if (isPermissionError(err)) {
+      const localQuizzes = readLocalJson(LOCAL_QUIZZES_KEY, []);
+      const quizzes = localQuizzes.length > 0 ? localQuizzes : mockQuizzes;
+      writeLocalJson(LOCAL_QUIZZES_KEY, quizzes);
+      if (classLevel) {
+        return quizzes.filter((quiz) => quiz.classLevel === classLevel);
+      }
+      return quizzes;
+    }
+
     console.error("Error getting quizzes:", err);
     return [];
   }
@@ -82,6 +110,10 @@ export const getQuizById = async (id) => {
     }
     return null;
   } catch (err) {
+    if (isPermissionError(err)) {
+      return readLocalJson(LOCAL_QUIZZES_KEY, mockQuizzes).find((quiz) => quiz.id === id) || null;
+    }
+
     console.error("Error getting quiz:", err);
     return null;
   }
@@ -101,6 +133,22 @@ export const saveQuizResult = async (userId, quizId, score, total, topicAnalysis
     const docRef = await addDoc(collection(db, RESULTS_COLLECTION), newResult);
     return { id: docRef.id, ...newResult };
   } catch (err) {
+    if (isPermissionError(err)) {
+      const results = readLocalJson(LOCAL_RESULTS_KEY, []);
+      const newResult = {
+        id: createId(),
+        userId,
+        quizId,
+        score,
+        total,
+        topicAnalysis,
+        date: new Date().toISOString()
+      };
+      results.push(newResult);
+      writeLocalJson(LOCAL_RESULTS_KEY, results);
+      return newResult;
+    }
+
     console.error("Error saving result:", err);
     throw err;
   }
@@ -112,6 +160,10 @@ export const getUserResults = async (userId) => {
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (err) {
+    if (isPermissionError(err)) {
+      return readLocalJson(LOCAL_RESULTS_KEY, []).filter((result) => result.userId === userId);
+    }
+
     console.error("Error getting user results:", err);
     return [];
   }
@@ -122,6 +174,14 @@ export const addQuiz = async (quiz) => {
     const docRef = await addDoc(collection(db, QUIZZES_COLLECTION), quiz);
     return { id: docRef.id, ...quiz };
   } catch (err) {
+    if (isPermissionError(err)) {
+      const quizzes = readLocalJson(LOCAL_QUIZZES_KEY, mockQuizzes);
+      const newQuiz = { id: createId(), ...quiz };
+      quizzes.push(newQuiz);
+      writeLocalJson(LOCAL_QUIZZES_KEY, quizzes);
+      return newQuiz;
+    }
+
     console.error("Error adding quiz:", err);
     throw err;
   }
